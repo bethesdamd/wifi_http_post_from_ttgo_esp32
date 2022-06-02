@@ -1,5 +1,8 @@
 # wifi_http_post_from_ttgo_esp32
-Shows how to POST to a web endpoint over WiFi using an ESP32 device, the TTGO
+Shows how to POST to a web endpoint over WiFi using an ESP32 device, the TTGO.  Specifically this is posting some json to a zapier webhook endpoint,
+which is configure to create a new row in a Google Sheet.  You can't easily post directly to Google Sheets, so Zapier makes it easier.
+
+The Zapier Zap is called: "Create spreadsheet row in Google Sheets when catch hook in Webhooks by Zapier"
 
 Creating a repo on this because it's a little tricky to get working.
 
