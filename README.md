@@ -2,6 +2,11 @@
 Shows how to POST to a web endpoint over WiFi using an ESP32 device, the TTGO.  Specifically this is posting some json to a zapier webhook endpoint,
 which is configure to create a new row in a Google Sheet.  You can't easily post directly to Google Sheets, so Zapier makes it easier.
 
+This demonstrates a very useful pattern:  how to send information from a sensor or other device, wirelessly to a Google spreadsheet.  Each transmission
+can have multiple columns and becomes a row in the spreadsheet.  Once you have data in the sheet, you can view, analyze, chart, etc.  This is 
+great for classroom science and other projects because you don't have to do anything to get data from a device like a thermometer,
+air quality sensor, light sensor, etc.
+
 The Zapier Zap is called: "Create spreadsheet row in Google Sheets when catch hook in Webhooks by Zapier"
 
 Creating a repo on this because it's a little tricky to get working.
