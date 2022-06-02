@@ -14,7 +14,7 @@ Creating a repo on this because it's a little tricky to get working.
 Since I'm using a 14 day trial of Zapier starting today, this will fail after that date because you can't
 use webhook feature of Zapier without a paid trial.
 
-Used a TTGO T1 Version 1.3
+Used a TTGO T1 Version 1.3:  https://github.com/LilyGO/ESP32-TTGO-T1 
 
 Secrets are in a header file, this also serves to show how to safely hold secrets
 That file should have this format:
