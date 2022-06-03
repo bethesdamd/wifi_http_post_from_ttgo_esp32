@@ -4,8 +4,11 @@
 * Zapier endpoint: https://hooks.zapier.com/hooks/catch/4808229/bab9sly/ 
 * Google Sheet: https://docs.google.com/spreadsheets/d/1bRZb_dOTYsurYc7bbOU5AaBCz7FeesKW9asob9E757s/edit#gid=653291478
 * Reconnect technique: https://randomnerdtutorials.com/solved-reconnect-esp32-to-wifi/ 
+*
+* Reads analog voltage value from pin 35 of TTGO.  Grove analog light sensor produces
+* values from approx 650 for dark to 2200 and above for bright cloudy day
+* Press T1 RST button to re-run code
 */
-
 
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
@@ -16,17 +19,22 @@ const char *AP_SSID = SECRET_SSID;
 const char *AP_PWD = SECRET_PASS;
 const char *SECRET_ZAPIER_ENDPOINT = SECRET_ZAPIER_ENDPOINT_URL;
 
-WiFiMulti wifiMulti;
+WiFiMulti wifiMulti;  // wifiMulti is able to pick best of multiple AP's but this code isn't using that feature
  
+int sensorValue = 0;
+int sensorPin = 35;
+
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
+  pinMode(sensorPin, INPUT);
    
   delay(4000);
   wifiMulti.addAP(AP_SSID, AP_PWD);
+  Serial.println("Hello from setup");
 }
  
 void loop() {
-  postDataToServer(5 * 1000 * 60);  // minutes between transmissions
+  postDataToServer(60 * 1000 * 60);  // minutes between transmissions
 }
  
 void postDataToServer(int mSecs) {
@@ -46,7 +54,11 @@ void postDataToServer(int mSecs) {
     // So if you have a spreadsheet with a column called "timestamp", then you 
     // must set doc["timestamp"] = "03/24/1988" for example.
     doc["name"] = "david-6";
-    doc["location"] = String(random(105));  
+    // doc["location"] = String(random(105));  
+    sensorValue = analogRead(sensorPin);
+    Serial.println("Sensor value:");
+    Serial.println(sensorValue);
+    doc["location"] = String(sensorValue);
    
     // Add an array
     // JsonArray data = doc.createNestedArray("data");
@@ -61,8 +73,9 @@ void postDataToServer(int mSecs) {
     if(httpResponseCode>0){
        
       String response = http.getString();                       
-       
-      Serial.println(httpResponseCode);   
+      Serial.println("HTTP response code:");
+      Serial.println(httpResponseCode);  
+      Serial.println("HTTP response"); 
       Serial.println(response);
      
     }
