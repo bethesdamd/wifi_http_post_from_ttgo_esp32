@@ -14,7 +14,12 @@
 #include <HTTPClient.h>
 #include <WiFiMulti.h>
 #include "VariousSecrets.h"
+#include "time.h"
  
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 3600;
+const int   daylightOffset_sec = 3600;
+
 const char *AP_SSID = SECRET_SSID;
 const char *AP_PWD = SECRET_PASS;
 const char *SECRET_ZAPIER_ENDPOINT = SECRET_ZAPIER_ENDPOINT_URL;
@@ -23,6 +28,16 @@ WiFiMulti wifiMulti;  // wifiMulti is able to pick best of multiple AP's but thi
  
 int sensorValue = 0;
 int sensorPin = 35;
+
+void printLocalTime()
+{
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return;
+  }
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+}
 
 void setup() {
   Serial.begin(115200);
@@ -38,10 +53,15 @@ void loop() {
 }
  
 void postDataToServer(int mSecs) {
- 
+
+
   Serial.println("Posting JSON data to server...");
   // Block until we are able to connect to the WiFi access point
   if (wifiMulti.run() == WL_CONNECTED) {
+
+  //init and get the time
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  printLocalTime();
      
     HTTPClient http;   
      
