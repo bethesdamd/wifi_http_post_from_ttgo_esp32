@@ -47,20 +47,20 @@ String returnLocalTime()
   strftime(timeStringBuff, sizeof(timeStringBuff), "%D %H:%M:%S", &timeinfo);
   String mystring;
   mystring = timeStringBuff;
+  Serial.println("mystring: " + mystring);
   return mystring;
 }
 
 void setup() {
   Serial.begin(115200);
   pinMode(sensorPin, INPUT);
-   
   delay(4000);
   wifiMulti.addAP(AP_SSID, AP_PWD);
   Serial.println("Hello from setup");
 }
  
 void loop() {
-  postDataToServer(3 * 1000 * 60);  // minutes between transmissions
+  postDataToServer(1 * 1000 * 60);  // minutes between transmissions
 }
  
 void postDataToServer(int mSecs) {
@@ -81,8 +81,24 @@ void postDataToServer(int mSecs) {
   http.begin(SECRET_ENDPOINT);  
   http.addHeader("Content-Type", "application/json");         
     
+String requestBody;
 
-    
+
+StaticJsonDocument<200> jsonDoc;
+JsonObject stuff = jsonDoc.createNestedObject("stuff");
+stuff["timestamp"] = returnLocalTime();
+stuff["value"] = analogRead(sensorPin);
+char out[150];
+serializeJson(jsonDoc, out);
+int httpResponseCode = http.POST(out);
+String response = http.getString();                       
+Serial.println("HTTP response code:");
+Serial.println(httpResponseCode);  
+Serial.println("HTTP response"); 
+Serial.println(response);
+
+
+  /*
   StaticJsonDocument<200> doc;
   // Add values in the document
   // This is the payload.  Each item below maps to a column in the spreadsheet.
@@ -98,7 +114,6 @@ void postDataToServer(int mSecs) {
   Serial.println(sensorValue);
   doc["value"] = String(sensorValue);
      
-  String requestBody;
   // String input = "{\"timestamp\":\"mytime\",\"value\":12345}";
   // deserializeJson(doc, input);
   serializeJson(doc, requestBody);
@@ -112,7 +127,7 @@ void postDataToServer(int mSecs) {
     Serial.println(httpResponseCode);  
     Serial.println("HTTP response"); 
     Serial.println(response);
-    
+    */
   }
   else {
     
@@ -122,5 +137,5 @@ void postDataToServer(int mSecs) {
   }
   delay(mSecs);
      
-  }
+  
 }
