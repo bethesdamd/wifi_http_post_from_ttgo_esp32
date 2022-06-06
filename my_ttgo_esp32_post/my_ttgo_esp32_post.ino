@@ -2,6 +2,7 @@
 * POST some JSON to a Google Sheet row using Zapier as the intermediary
 * Project info: https://github.com/bethesdamd/wifi_http_post_from_ttgo_esp32
 * Zapier endpoint: https://hooks.zapier.com/hooks/catch/4808229/bab9sly/ 
+* Integromat / Make.com endpoint: https://hook.integromat.com/d3tpfvvj33ein31v7gohun58l9qvwt4a
 * Google Sheet: https://docs.google.com/spreadsheets/d/1bRZb_dOTYsurYc7bbOU5AaBCz7FeesKW9asob9E757s/edit#gid=653291478
 * Reconnect technique: https://randomnerdtutorials.com/solved-reconnect-esp32-to-wifi/ 
 *
@@ -22,13 +23,12 @@ const int   daylightOffset_sec = 3600;
 
 const char *AP_SSID = SECRET_SSID;
 const char *AP_PWD = SECRET_PASS;
-const char *SECRET_ZAPIER_ENDPOINT = SECRET_ZAPIER_ENDPOINT_URL;
+const char *SECRET_ENDPOINT = SECRET_ENDPOINT_URL;
 
 WiFiMulti wifiMulti;  // wifiMulti is able to pick best of multiple AP's but this code isn't using that feature
  
 int sensorValue = 0;
 int sensorPin = 35;
-
 
 String returnLocalTime()
 {
@@ -41,7 +41,9 @@ String returnLocalTime()
   char timeStringBuff[50];
 
   // "A": Saturday
-  strftime(timeStringBuff, sizeof(timeStringBuff), "%B %d %Y %H:%M:%S", &timeinfo);
+  // %d/%e/%Y %H:%M:%S
+  // strftime(timeStringBuff, sizeof(timeStringBuff), "%B %d %Y %H:%M:%S", &timeinfo);
+  strftime(timeStringBuff, sizeof(timeStringBuff), "%D %H:%M:%S", &timeinfo);
   return String(timeStringBuff);
 }
 
@@ -55,22 +57,25 @@ void setup() {
 }
  
 void loop() {
-  postDataToServer(60 * 1000 * 60);  // minutes between transmissions
+  postDataToServer(2 * 1000 * 60);  // minutes between transmissions
 }
  
 void postDataToServer(int mSecs) {
-
+  Serial.println("=========================================================\n");
   Serial.println("Posting JSON data to server...");
   // Block until we are able to connect to the WiFi access point
   if (wifiMulti.run() == WL_CONNECTED) {
 
   //init and get the time
   configTime(gmtOffset_sec * -5, daylightOffset_sec, ntpServer);
-  Serial.print(returnLocalTime());
+  String datetime;
+  datetime = returnLocalTime();
+  Serial.println(datetime);
+  Serial.println("\n");
      
   HTTPClient http;   
     
-  http.begin(SECRET_ZAPIER_ENDPOINT);  
+  http.begin(SECRET_ENDPOINT);  
   http.addHeader("Content-Type", "application/json");         
     
   StaticJsonDocument<200> doc;
@@ -78,12 +83,12 @@ void postDataToServer(int mSecs) {
   // This is the payload.  Each item below maps to a column in the spreadsheet.
   // So if you have a spreadsheet with a column called "timestamp", then you 
   // must set doc["timestamp"] = "03/24/1988" for example.
-  doc["name"] = "david-6";
+  doc["timestamp"] = datetime;
   // doc["location"] = String(random(105));  
   sensorValue = analogRead(sensorPin);
   Serial.println("Sensor value:");
   Serial.println(sensorValue);
-  doc["location"] = String(sensorValue);
+  doc["value"] = String(sensorValue);
   
   // Add an array
   // JsonArray data = doc.createNestedArray("data");
