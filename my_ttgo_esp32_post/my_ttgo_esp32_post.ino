@@ -11,6 +11,7 @@
 * Press T1 RST button to re-run code
 */
 
+#define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <WiFiMulti.h>
@@ -44,7 +45,9 @@ String returnLocalTime()
   // %d/%e/%Y %H:%M:%S
   // strftime(timeStringBuff, sizeof(timeStringBuff), "%B %d %Y %H:%M:%S", &timeinfo);
   strftime(timeStringBuff, sizeof(timeStringBuff), "%D %H:%M:%S", &timeinfo);
-  return String(timeStringBuff);
+  String mystring;
+  mystring = timeStringBuff;
+  return mystring;
 }
 
 void setup() {
@@ -57,7 +60,7 @@ void setup() {
 }
  
 void loop() {
-  postDataToServer(2 * 1000 * 60);  // minutes between transmissions
+  postDataToServer(3 * 1000 * 60);  // minutes between transmissions
 }
  
 void postDataToServer(int mSecs) {
@@ -78,26 +81,28 @@ void postDataToServer(int mSecs) {
   http.begin(SECRET_ENDPOINT);  
   http.addHeader("Content-Type", "application/json");         
     
+
+    
   StaticJsonDocument<200> doc;
   // Add values in the document
   // This is the payload.  Each item below maps to a column in the spreadsheet.
   // So if you have a spreadsheet with a column called "timestamp", then you 
   // must set doc["timestamp"] = "03/24/1988" for example.
-  doc["timestamp"] = datetime;
-  // doc["location"] = String(random(105));  
+
+  doc[String("timestamp")] = datetime;
+  // Serial.println("test datetime print:");
+  // Serial.println(doc["timestamp"]);
+ 
   sensorValue = analogRead(sensorPin);
   Serial.println("Sensor value:");
   Serial.println(sensorValue);
   doc["value"] = String(sensorValue);
-  
-  // Add an array
-  // JsonArray data = doc.createNestedArray("data");
-  // data.add(48.756080);
-  // data.add(2.302038);
      
   String requestBody;
+  // String input = "{\"timestamp\":\"mytime\",\"value\":12345}";
+  // deserializeJson(doc, input);
   serializeJson(doc, requestBody);
-    
+  
   int httpResponseCode = http.POST(requestBody);
 
   if(httpResponseCode>0){
