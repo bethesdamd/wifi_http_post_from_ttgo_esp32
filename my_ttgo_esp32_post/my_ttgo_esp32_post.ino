@@ -1,10 +1,10 @@
 /*
-* POST some JSON to a Google Sheet row using Zapier as the intermediary
+* POST sensor data to a Google Sheet row using Make.com (formerly Integromat) as the intermediary
 * Project info: https://github.com/bethesdamd/wifi_http_post_from_ttgo_esp32
-* Zapier endpoint: https://hooks.zapier.com/hooks/catch/4808229/bab9sly/ 
-* Integromat / Make.com endpoint: https://hook.integromat.com/d3tpfvvj33ein31v7gohun58l9qvwt4a
 * Google Sheet: https://docs.google.com/spreadsheets/d/1bRZb_dOTYsurYc7bbOU5AaBCz7FeesKW9asob9E757s/edit#gid=653291478
 * Reconnect technique: https://randomnerdtutorials.com/solved-reconnect-esp32-to-wifi/ 
+
+Uses NTP to get date time since this microcontroller lacks a realtime clock
 *
 * Reads analog voltage value from pin 35 of TTGO.  Grove analog light sensor produces
 * values from approx 650 for dark to 2200 and above for bright cloudy day
@@ -38,12 +38,7 @@ String returnLocalTime()
     Serial.println("Failed to obtain time");
     return "xxx";
   }
-  // Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
   char timeStringBuff[50];
-
-  // "A": Saturday
-  // %d/%e/%Y %H:%M:%S
-  // strftime(timeStringBuff, sizeof(timeStringBuff), "%B %d %Y %H:%M:%S", &timeinfo);
   strftime(timeStringBuff, sizeof(timeStringBuff), "%D %H:%M:%S", &timeinfo);
   String mystring;
   mystring = timeStringBuff;
@@ -69,7 +64,6 @@ void postDataToServer(int mSecs) {
   // Block until we are able to connect to the WiFi access point
   if (wifiMulti.run() == WL_CONNECTED) {
 
-  //init and get the time
   configTime(gmtOffset_sec * -5, daylightOffset_sec, ntpServer);
   String datetime;
   datetime = returnLocalTime();
@@ -81,61 +75,26 @@ void postDataToServer(int mSecs) {
   http.begin(SECRET_ENDPOINT);  
   http.addHeader("Content-Type", "application/json");         
     
-String requestBody;
+  String requestBody;
 
+  StaticJsonDocument<200> jsonDoc;
+  JsonObject stuff = jsonDoc.createNestedObject("stuff");
+  stuff["timestamp"] = returnLocalTime();
+  stuff["value"] = analogRead(sensorPin);
+  char out[150];
+  serializeJson(jsonDoc, out);
+  int httpResponseCode = http.POST(out);
+  String response = http.getString();                       
+  Serial.println("HTTP response code:");
+  Serial.println(httpResponseCode);  
+  Serial.println("HTTP response"); 
+  Serial.println(response);
 
-StaticJsonDocument<200> jsonDoc;
-JsonObject stuff = jsonDoc.createNestedObject("stuff");
-stuff["timestamp"] = returnLocalTime();
-stuff["value"] = analogRead(sensorPin);
-char out[150];
-serializeJson(jsonDoc, out);
-int httpResponseCode = http.POST(out);
-String response = http.getString();                       
-Serial.println("HTTP response code:");
-Serial.println(httpResponseCode);  
-Serial.println("HTTP response"); 
-Serial.println(response);
-
-
-  /*
-  StaticJsonDocument<200> doc;
-  // Add values in the document
-  // This is the payload.  Each item below maps to a column in the spreadsheet.
-  // So if you have a spreadsheet with a column called "timestamp", then you 
-  // must set doc["timestamp"] = "03/24/1988" for example.
-
-  doc[String("timestamp")] = datetime;
-  // Serial.println("test datetime print:");
-  // Serial.println(doc["timestamp"]);
- 
-  sensorValue = analogRead(sensorPin);
-  Serial.println("Sensor value:");
-  Serial.println(sensorValue);
-  doc["value"] = String(sensorValue);
-     
-  // String input = "{\"timestamp\":\"mytime\",\"value\":12345}";
-  // deserializeJson(doc, input);
-  serializeJson(doc, requestBody);
-  
-  int httpResponseCode = http.POST(requestBody);
-
-  if(httpResponseCode>0){
-      
-    String response = http.getString();                       
-    Serial.println("HTTP response code:");
-    Serial.println(httpResponseCode);  
-    Serial.println("HTTP response"); 
-    Serial.println(response);
-    */
   }
   else {
-    
     //Serial.printf("Error occurred while sending HTTP POST: %s\n", httpClient.errorToString(statusCode).c_str());
     Serial.printf("Error occurred while sending HTTP POST\n");
-      
   }
   delay(mSecs);
-     
-  
+
 }
