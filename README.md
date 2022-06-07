@@ -1,5 +1,5 @@
 # wifi_http_post_from_ttgo_esp32
-Shows how to POST to a web endpoint over WiFi using an ESP32 device, the TTGO.  Specifically this is posting some json to a Make.com webhook endpoint,
+Shows how to POST to a web endpoint over WiFi using an ESP32 device, the TTGO T1.  Specifically this is posting some json to a Make.com webhook endpoint,
 which is configure to create a new row in a Google Sheet.  You can't easily post directly to Google Sheets, so Make.com makes it easier.
 
 *NOTE: This will not work on a "captive" WiFi network.  Captive networks require entering information into a web page.*
